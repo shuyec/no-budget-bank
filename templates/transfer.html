@@ -1,0 +1,95 @@
+{% extends "base.html" %}
+{% block title %}Transfer{% endblock %}
+
+{% block content %}
+<h1>Transfer money</h1>
+<form action="" id="form">
+	<p>Sender account id:</p>
+	<p><input type="text" name="from" id="from" minlength="20" maxlength="20" required/> * 20 characters</p>
+	<p>Receiver account id:</p>
+	<p><input type="text" name="to" id="to" minlength="20" maxlength="20" required/> * 20 characters</p>
+	<p>Amount:</p>
+	<p><input type="number" step="0.01" min=0 name="amount" id="amount" required /> * number >= 0</p>
+	<input type="reset" value="reset" onclick="resetForm()">
+	<input type="submit" value="transfer" />
+</form>
+<span id="result"></span>
+
+<script type="text/javascript">
+	let form = document.querySelector("form");
+	form.addEventListener('submit', async function(event) {
+		event.preventDefault();
+		let formData = new FormData(form);
+		let senderId = formData.get("from");
+		let receiverId = formData.get("to");
+		let form_data = {};
+		for (let [key, prop] of formData) {
+			form_data[key] = prop;
+		}
+		form_data_json = JSON.stringify(form_data);
+		const response = await fetch('/api/transfer', {
+			method: 'POST',
+			headers: {
+				'Accept': 'application/json',
+				'Content-Type': 'application/json'
+			},
+			body: form_data_json
+		})
+		const data = await response.json();
+		if (response.ok) {
+			document.getElementById("result").innerHTML = "<p>Transaction completed</p>";
+			createTable(data, senderId, null);
+			document.getElementById("result").innerHTML += "<br />"
+			createTable(data, null, receiverId);
+		}
+		else {
+			document.getElementById("result").innerHTML = "<p>" + data["message"] + "</p>"; 
+		}
+	})
+
+	function resetForm() {
+		document.getElementById("form").reset();
+		document.getElementById("result").innerHTML = "";
+	}
+
+	function createTable(transaction, sId, rId) {
+		let headers = ["TRANSACTION UUID", "ACCOUNT ID", "DATE", "TYPE", "AMOUNT", "NEW TOTAL"];
+		let table = document.createElement("TABLE");
+		let trans_amount = Number(transaction["amount"]).toFixed(2);
+		let sender_total = Number(transaction["sender_total"]).toFixed(2);
+		let receiver_total = Number(transaction["receiver_total"]).toFixed(2);
+		table.style.border = "1px solid";
+		let row = table.insertRow();
+		if (sId != null) {
+			row.insertCell(0).innerHTML = transaction["send_uuid"];
+			row.insertCell(1).innerHTML = sId;
+			row.insertCell(2).innerHTML = transaction["send_date"];
+			row.insertCell(3).innerHTML = transaction["send_type"];
+			row.insertCell(4).innerHTML = "-€" + trans_amount;
+			row.insertCell(5).innerHTML = "€" + sender_total;
+		}
+		else if (rId != null) {
+			row.insertCell(0).innerHTML = transaction["receive_uuid"];
+			row.insertCell(1).innerHTML = rId;
+			row.insertCell(2).innerHTML = transaction["receive_date"];
+			row.insertCell(3).innerHTML = transaction["receive_type"];
+			row.insertCell(4).innerHTML = "+€" + trans_amount;
+			row.insertCell(5).innerHTML = "€" + receiver_total;
+		}
+		let header = table.createTHead();
+		let headerRow = header.insertRow(0);
+		for(let i = 0; i < headers.length; i++) {
+			if (headers[i] == "ACCOUNT ID" && sId != null)
+				headerRow.insertCell(i).innerHTML = "SENDER ID";
+			else if (headers[i] == "ACCOUNT ID" && rId != null)
+				headerRow.insertCell(i).innerHTML = "RECEIVER ID";
+			else
+				headerRow.insertCell(i).innerHTML = headers[i];
+			headerRow.style.fontWeight = 'bold';
+		}
+		document.getElementById("result").append(table);
+	}
+</script>
+
+
+{% endblock %}

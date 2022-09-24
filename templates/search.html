@@ -1,0 +1,104 @@
+{% extends "base.html" %}
+{% block title %}Search account{% endblock %}
+
+{% block content %}
+<h1>Search account</h1>
+<form action="" id="form">
+	<p>Account id:</p>
+	<p><input type="text" minlength="20" name="accountId" id="accountId" maxlength="20" required/> * 20 characters</p>
+	<input type="reset" value="reset" onclick="resetForm()">
+	<input type="submit" value="search" />
+</form>
+<span id="result"></span>
+
+<script type="text/javascript">
+	let form = document.querySelector("form");
+	form.addEventListener('submit', async function(event) {
+		event.preventDefault();
+		let accountId = document.getElementById("accountId").value;
+		let formData = new FormData(form);
+		const response = await fetch('/api/account/'+formData.get("accountId"), {
+			method: 'GET'
+		})
+		const data = await response.json();
+		document.getElementById("result").innerHTML = "<p>" + "Results for: " + accountId + "</p>";
+		if (response.ok) {
+			if (data["transactions"].length == 0) {
+				document.getElementById("result").innerHTML += "<p>No transactions found</p>";
+			}
+			else{
+				if (data["transactions"].length == 1)
+					document.getElementById("result").innerHTML += "<p>" + data["transactions"].length + " transaction found</p>";
+				else
+					document.getElementById("result").innerHTML += "<p>" + data["transactions"].length + " transactions found</p>";
+				
+				createInfoTable(data, accountId);
+				document.getElementById("result").innerHTML += "<br />"
+				createTransactionsTable(data["transactions"]);
+			}
+		}
+		else {
+			document.getElementById("result").innerHTML += "<p>" + data["message"] + "</p>"; 
+		}
+	})
+
+	function resetForm() {
+		document.getElementById("form").reset();
+		document.getElementById("result").innerHTML = "";
+	}
+
+	function createInfoTable(data, accountId) {
+		let headers = ["ACCOUNT ID", "NAME", "SURNAME", "TOTAL"];
+		let table = document.createElement("TABLE");
+		table.style.border = "1px solid";
+		let row = table.insertRow();
+		let acc_total = Number(data["total"]).toFixed(2);
+		row.insertCell(0).innerHTML = accountId;
+		row.insertCell(1).innerHTML = data["name"];
+		row.insertCell(2).innerHTML = data["surname"];
+		row.insertCell(3).innerHTML = "€" + acc_total;
+
+		let header = table.createTHead();
+		let headerRow = header.insertRow(0);
+		for(let i = 0; i < headers.length; i++) {
+			headerRow.insertCell(i).innerHTML = headers[i];
+			headerRow.style.fontWeight = 'bold';
+		}
+		document.getElementById("result").append(table);
+	}
+
+	function createTransactionsTable(transactions) {
+		let headers = ["UUID", "SENDER ID", "RECEIVER ID", "DATE", "TYPE", "AMOUNT"];
+		let table = document.createElement("TABLE");
+		table.style.border = "1px solid";
+		for(let i = 0; i < transactions.length; i++) {
+			let row = table.insertRow(i);
+			let trans_amount = Number(transactions[i]["amount"]).toFixed(2);
+			row.insertCell(0).innerHTML = transactions[i]["uuid"];
+			row.insertCell(1).innerHTML = transactions[i]["senderId"];
+			row.insertCell(2).innerHTML = transactions[i]["receiverId"];
+			row.insertCell(3).innerHTML = transactions[i]["date"];
+			row.insertCell(4).innerHTML = transactions[i]["type"];
+			if (trans_amount < 0){
+				trans_amount = (Number(trans_amount)*(-1)).toFixed(2);
+				row.insertCell(5).innerHTML = "-€" + trans_amount;
+			}
+			else if (trans_amount > 0)
+				row.insertCell(5).innerHTML = "+€" + trans_amount;
+			else
+				row.insertCell(5).innerHTML = "€" + trans_amount;
+			if (i == transactions.length-1)
+				row.style.fontWeight = 'bold';
+		}
+		let header = table.createTHead();
+		let headerRow = header.insertRow(0);
+		for(let i = 0; i < headers.length; i++) {
+			headerRow.insertCell(i).innerHTML = headers[i];
+			headerRow.style.fontWeight = 'bold';
+		}
+		document.getElementById("result").append(table);
+
+	}
+</script>
+
+{% endblock %}

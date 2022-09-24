@@ -1,0 +1,40 @@
+{% extends "base.html" %}
+{% block title %}Delete account{% endblock %}
+
+{% block content %}
+<h1>Delete account</h1>
+<form action="" id="form">
+	<p>Account id:</p>
+	<p><input type="text" minlength="20" name="id" id="accountId" maxlength="20"/> * 20 characters</p>
+	<input type="reset" value="reset" onclick="resetForm()">
+	<input type="submit" value="delete" />
+</form>
+<span id="result"></span>
+
+<script type="text/javascript">
+	let form = document.querySelector("form");
+	form.addEventListener('submit', async function(event) {
+		event.preventDefault();
+		let formData = new FormData(form);
+		let accId = formData.get("id");
+		const response = await fetch('/api/account'+"?id="+accId, {
+			method: 'DELETE'
+		})
+		const data = await response.json();
+		if (response.ok) {
+			document.getElementById("result").innerHTML = '<p>Account "' + accId + '" deleted successfully</p>';
+		}
+		else {
+			document.getElementById("result").innerHTML = "<p>" + data["message"] + "</p>"; 
+		}
+	})
+
+	function resetForm() {
+		document.getElementById("form").reset();
+		document.getElementById("result").innerHTML = "";
+	}
+</script>
+
+
+
+{% endblock %}

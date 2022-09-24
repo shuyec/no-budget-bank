@@ -1,0 +1,70 @@
+{% extends "base.html" %}
+{% block title %}Create account{% endblock %}
+
+{% block content %}
+<h1>Create new account</h1>
+<form action="" id="form">
+	<p>Insert name:</p>
+	<p><input type="text" name="name" id="name" maxlength=20 required /></p>
+    <p>Insert surname:</p>
+	<p><input type="text" name="surname" id="surname" maxlength=20 required /></p>
+	<input type="reset" value="reset" onclick="resetForm()">
+    <input type="submit" value="create" />
+</form>
+<span id="result"></span>
+
+<script type="text/javascript">
+	let form = document.querySelector("form");
+	form.addEventListener('submit', async function(event) {
+		event.preventDefault();
+		let formData = new FormData(form);
+		let acc_name = formData.get("name");
+		let acc_surname = formData.get("surname");
+		let form_data = {};
+		for (let [key, prop] of formData) {
+			form_data[key] = prop;
+		}
+		form_data_json = JSON.stringify(form_data);
+		const response = await fetch('/api/account', {
+			method: 'POST',
+			headers: {
+				'Accept': 'application/json',
+				'Content-Type': 'application/json'
+			},
+			body: form_data_json
+		})
+		const data = await response.json();
+		if (response.ok) {
+			document.getElementById("result").innerHTML = "<p>Account created</p>";
+			createTable(data, acc_name, acc_surname);
+		}
+		else {
+			document.getElementById("result").innerHTML = "<p>" + data["message"] + "</p>"; 
+		}
+	})
+
+	function resetForm() {
+		document.getElementById("form").reset();
+		document.getElementById("result").innerHTML = "";
+	}
+
+	function createTable(data, acc_name, acc_surname) {
+		let headers = ["ACCOUNT ID", "NAME", "SURNAME"];
+		let table = document.createElement("TABLE");
+		table.style.border = "1px solid";
+		let row = table.insertRow();
+        row.insertCell(0).innerHTML = data["accountId"];
+        row.insertCell(1).innerHTML = acc_name;
+        row.insertCell(2).innerHTML = acc_surname;
+		let header = table.createTHead();
+		let headerRow = header.insertRow(0);
+		for(let i = 0; i < headers.length; i++) {
+			headerRow.insertCell(i).innerHTML = headers[i];
+			headerRow.style.fontWeight = 'bold';
+		}
+		document.getElementById("result").append(table);
+	}
+</script>
+
+
+{% endblock %}

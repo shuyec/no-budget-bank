@@ -1,0 +1,49 @@
+{% extends "base.html" %}
+{% block title %}Accounts list{% endblock %}
+
+{% block content %}
+<h1>Accounts list</h1>
+<span id="result"></span>
+
+<script type="text/javascript">
+	window.onload = async function accountsTable() {
+		const response = await fetch('/api/account/', {
+			method: 'GET'
+		})
+		const data = await response.json();
+		if (response.ok) {
+			if (data.length == 0) {
+				document.getElementById("result").innerHTML += "<p>0 accounts in the database</p>";
+			}
+			else
+				createTable(data);
+		}
+		else 
+			document.getElementById("result").innerHTML += "<p>" + data["message"] + "</p>"; 
+	}
+
+	function createTable(data) {
+		let headers = ["ACCOUNT ID	", "NAME", "SURNAME", "TOTAL"];
+		let table = document.createElement("TABLE");
+		table.style.border = "1px solid";
+		for(let i = 0; i < data.length; i++) {
+			let row = table.insertRow(i);
+			let acc_total = Number(data[i]["total"]).toFixed(2);
+			row.insertCell(0).innerHTML = data[i]["accountId"];
+			row.insertCell(1).innerHTML = data[i]["name"];
+			row.insertCell(2).innerHTML = data[i]["surname"];
+			row.insertCell(3).innerHTML = "€" + acc_total;
+		}
+		let header = table.createTHead();
+		let headerRow = header.insertRow(0);
+		for(let i = 0; i < headers.length; i++) {
+			headerRow.insertCell(i).innerHTML = headers[i];
+			headerRow.style.fontWeight = 'bold';
+		}
+		document.getElementById("result").append(table);
+	}
+</script>
+
+
+
+{% endblock %}

@@ -1,0 +1,25 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="utf-8">
+    <title>{% block title %}{% endblock %}</title>
+    <style>
+        table, th, td {
+          border: 1px solid black;
+          border-collapse: collapse;
+        }
+    </style>
+</head>
+<body>
+    <a href="http://localhost:5000/"><button>Search account</button></a>
+    <a href="http://localhost:5000/transfer"><button>Transfer money</button></a>
+    <a href="http://localhost:5000/account"><button>Create account</button></a>
+    <a href="http://localhost:5000/delete"><button>Delete account</button></a>
+    <a href="http://localhost:5000/divert"><button>Divert transaction</button></a>
+    <a href="http://localhost:5000/cash"><button>Deposit/Withdraw</button></a>
+    <a href="http://localhost:5000/accounts"><button>Accounts list</button></a>
+
+    {% block content %}
+    {% endblock %}
+</body>
+</html>

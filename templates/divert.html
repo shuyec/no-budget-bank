@@ -1,0 +1,97 @@
+{% extends "base.html" %}
+{% block title %}Divert{% endblock %}
+
+{% block content %}
+<h1>Divert transaction</h1>
+<form action="" id="form">
+	<p>Transaction UUID:</p>
+	<p><input type="text" name="id" id="id" class="id" size="50" minlength="32" maxlength="32" required /> * 32 characters</p>
+	<input type="reset" value="reset" onclick="resetForm()">
+	<input type="submit" value="divert" />
+</form>
+<span id="result"></span>
+
+
+<script src="{{ url_for('static', filename='jquery-3.6.0.min.js') }}" type="text/javascript"></script>
+<script src="{{ url_for('static', filename='jquery.mask.min.js') }}" type="text/javascript"></script>
+<script >
+	$(document).ready(function() {
+	$('.id').mask("AAAAAAAA-AAAA-AAAA-AAAA-AAAAAAAAAAAA", {'translation': {A: {pattern: /[0-9a-f]/}}});
+	$('.id').keyup(function () { 
+		if(this.value.length < 36) {
+			let input_length = (this.value.length) - 4;
+			this.setCustomValidity("Please lengthten this text to 32 characters or more." + "(You are currently using " + input_length + " characters).");
+		}
+		else
+			this.setCustomValidity("");
+		});	
+	});
+</script>
+
+<script type="text/javascript">
+	let form = document.querySelector("form");
+	form.addEventListener('submit', async function(event) {
+		event.preventDefault();
+		let formData = new FormData(form);
+		let form_data = {};
+		for (let [key, prop] of formData) {
+			form_data[key] = prop;
+		}
+		form_data_json = JSON.stringify(form_data);
+		const response = await fetch('/api/divert', {
+			method: 'POST',
+			headers: {
+				'Accept': 'application/json',
+				'Content-Type': 'application/json'
+			},
+			body: form_data_json
+		})
+		const data = await response.json();
+		if (response.ok) {
+			document.getElementById("result").innerHTML = "<p>Transaction diverted successfully</p>";
+			createTable(data);
+		}
+		else {
+			document.getElementById("result").innerHTML = "<p>" + data["message"] + "</p>"; 
+		}
+	})
+
+	function resetForm() {
+		document.getElementById("form").reset();
+		document.getElementById("result").innerHTML = "";
+	}
+
+	function createTable(data) {
+		let headers = ["TRANSACTION UUID", "SENDER ID", "RECEIVER ID", "DATE", "TYPE", "AMOUNT"];
+		let table = document.createElement("TABLE");
+		table.style.border = "1px solid";
+		let transactions = data["divert_transactions"];
+		
+		for (let i = 0; i < transactions.length; i++) {
+			let row = table.insertRow();
+			let trans_amount = Number(transactions[i]["amount"]).toFixed(2);
+			row.insertCell(0).innerHTML = transactions[i]["uuid"];
+			row.insertCell(1).innerHTML = transactions[i]["senderId"];
+			row.insertCell(2).innerHTML = transactions[i]["receiverId"];
+			row.insertCell(3).innerHTML = transactions[i]["date"];
+			row.insertCell(4).innerHTML = transactions[i]["type"];
+			if (trans_amount < 0){
+				trans_amount = (Number(trans_amount)*(-1)).toFixed(2);
+				row.insertCell(5).innerHTML = "-€" + trans_amount;
+			}
+			else if (trans_amount > 0)
+				row.insertCell(5).innerHTML = "+€" + trans_amount;
+			else
+				row.insertCell(5).innerHTML = "€" + trans_amount;
+		}
+		let header = table.createTHead();
+		let headerRow = header.insertRow(0);
+		for(let i = 0; i < headers.length; i++) {
+			headerRow.insertCell(i).innerHTML = headers[i];
+			headerRow.style.fontWeight = 'bold';
+		}
+		document.getElementById("result").append(table);
+	}
+</script>
+
+{% endblock %}
