@@ -4,9 +4,9 @@ No security. No graphics. Just transactions.
 
 This is a 4 days university project for the class "Sistemi Distribuiti" at University of Milano-Bicocca.
 
-The project uses Python for the backend and Javascript+HTML for the frontend. There's also a little bit of [Jinja2](https://flask.palletsprojects.com/en/2.1.x/templating/) which is the standard template engine of Flask and it allows the use Python inside HTML pages.
+The project uses Python for the backend and Javascript+HTML for the frontend. There's also a little bit of [Jinja2](https://flask.palletsprojects.com/en/2.1.x/templating/) which is the standard template engine of Flask and it allows the use of Python inside HTML pages.
 
-For the load of data without a page refresh, the [Javascript Fetch API](https://developer.mozilla.org/en-US/docs/Web/API/Fetch_API) was used.
+[Javascript Fetch API](https://developer.mozilla.org/en-US/docs/Web/API/Fetch_API) was used to load the data without a page refresh.
 
 The file `main.py` contains all the backend code.
 The folder `templates` contains the frontend HTML pages.
